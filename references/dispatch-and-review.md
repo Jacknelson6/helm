@@ -68,9 +68,27 @@ across attempts burns the escalation ladder on your own review latency.
 One line per chunk, appended to the state file at accept/escalate time:
 
 ```
-- chunk <n>: <model>, <k> attempt(s)[ (escalated to <model>: <one-clause why>)], <accepted|blocked>
+- chunk <n>: <model>, <k> attempt(s)[ (escalated to <model>: <one-clause why>)], <accepted|blocked>, tokens=<n>
 ```
+
+`tokens=` is the harness-reported subagent token count (Claude Code surfaces
+it in the task-completion notification; other harnesses may expose it in the
+subagent result). Record scout/explore dispatches the same way. If the
+harness reports nothing, write `tokens=unreported` rather than omitting the
+field, so gaps are visible instead of silent.
 
 The "why" clause matters: when the run doubles as a model evaluation, the
 escalation reasons are the finding. "Kept missing the streaming routes" tells
 you something about a model; "3 attempts" alone doesn't.
+
+At exit, total the ledger in the state file and the recap:
+
+```
+Tokens: implementer-tier <sum> across <n> dispatches; advisor-tier <estimate>
+(scouts leaked to advisor tier: <n or none>)
+```
+
+This is what makes the cost claim auditable run over run: a run that cannot
+show its split cannot prove helm saved anything. Advisor-tier usage is
+usually an estimate (harnesses rarely report the main loop's own tokens);
+say so rather than presenting it as measured.

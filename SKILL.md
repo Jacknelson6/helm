@@ -34,6 +34,34 @@ verifiable exit), which is most of the value.
 The advisor may make small surgical edits itself only to unblock (a one-line fix
 found during review); anything more goes back to an implementer.
 
+## Token economics (make the savings real)
+
+Helm's overhead is real: each subagent carries its own system prompt and
+re-reads files the advisor also touched, so a helm run burns roughly 1.3-1.5x
+the raw tokens of a solo run. The savings come entirely from rate arbitrage,
+so protect it:
+
+- **Every dispatch names a cheap tier explicitly, including scouts.** Harness
+  defaults inherit the SESSION model, so a read-only explore agent dispatched
+  without a model override silently bills at advisor rates. Measured leak on a
+  real run: ~120k advisor-tier tokens on one codebase-mapping scout that
+  should have cost mid-tier money. Exploration, planning research, and
+  mechanical work all go out with the model parameter set; the only thing
+  that runs on the session model is the advisor's own reasoning.
+- **Review diffs, not files.** The advisor reviews with `git diff` plus
+  targeted greps/snippet reads. Never re-read whole files an implementer
+  already processed; if broad reading is needed, that's a scout dispatch on
+  the cheap tier.
+- **Don't helm single-chunk tasks.** Below ~2 chunks the advisor's planning
+  and review overhead dominates and a solo session is cheaper. Rule of thumb:
+  helm pays when the implementer tier is at least 2x cheaper per token than
+  the session model AND the task splits into 2+ delegable chunks.
+- **Record tokens so the claim is auditable.** Each log line carries the
+  harness-reported subagent token count (see the log-line format in
+  references/dispatch-and-review.md), and the exit recap totals advisor-tier
+  vs implementer-tier tokens. A run that can't show its split can't prove it
+  saved anything.
+
 Current recommended stack (July 2026; revisit as models ship):
 
 | Tier | Recommendation |
@@ -132,7 +160,10 @@ at the top of every iteration instead of trusting conversation history.
 ## Step 1 — plan (advisor, full effort)
 
 Plan at the level you'd want from a staff engineer: read the relevant code yourself
-(or via a read-only explore agent), decide the approach, then split into
+(targeted reads only) or via a read-only explore agent dispatched WITH an
+explicit cheap-tier model override (an explore agent without one inherits the
+session model and bills the whole sweep at advisor rates), decide the
+approach, then split into
 **delegable chunks**. A good chunk: one implementer can finish it without
 cross-chunk context, touches a bounded file set, and has its own acceptance check.
 2-6 chunks is typical; if it's one chunk, helm is overkill, just delegate once.
