@@ -43,13 +43,13 @@ Everything runs **inside the current session**. No cron, no scheduled wakeups, n
 **Global** (available in every project):
 
 ```bash
-git clone https://github.com/Jacknelson6/helm-skill ~/.claude/skills/helm
+git clone https://github.com/Jacknelson6/helm ~/.claude/skills/helm
 ```
 
 **Per-project** (checked into the repo, shared with your team):
 
 ```bash
-git clone https://github.com/Jacknelson6/helm-skill .claude/skills/helm
+git clone https://github.com/Jacknelson6/helm .claude/skills/helm
 rm -rf .claude/skills/helm/.git
 ```
 
@@ -106,6 +106,14 @@ Models: advisor=opus-4-8 implementer=sonnet escalation=opus
 ```
 
 Gitignore `.claude/helm/` if you don't want run logs in your repo; keep them if you're benchmarking.
+
+## What's in the repo
+
+- `SKILL.md` — the skill itself
+- `references/success-criteria.md` — what success looks like: worked completion conditions by task type (feature, bug fix, refactor, UI, performance), the invalid conditions helm must reject, and a gold-standard state file
+- `references/dispatch-and-review.md` — the dispatch prompt template, the advisor's per-chunk review checklist, and the log-line format that doubles as the model scorecard
+
+The references load on demand (progressive disclosure), so the skill stays cheap in context until a run actually starts.
 
 ## Design notes
 

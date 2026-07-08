@@ -49,7 +49,11 @@ a tier and must note why in the log.
 ## Step 0 — completion condition (never skip)
 
 Turn the request into a goal with a **verifiable end condition** before any work.
-A valid condition is one you can check without the user, in descending preference:
+Read [references/success-criteria.md](references/success-criteria.md) first: it
+has worked examples by task type (feature, bug fix, refactor, UI, performance),
+the invalid conditions to reject, and a gold-standard state file. Hold your own
+condition to that bar. A valid condition is one you can check without the user,
+in descending preference:
 
 1. **Command exit** — the project's verify/test gate passes, a named test passes,
    a script prints X.
@@ -99,7 +103,11 @@ dispatch prompt rather than assuming the subagent will find them.
 
 ## Step 2 — the loop
 
-For each unchecked chunk (parallelize only chunks with zero file overlap):
+Before your first dispatch, read
+[references/dispatch-and-review.md](references/dispatch-and-review.md): the
+dispatch prompt template, the per-chunk review checklist, and the log-line
+format. For each unchecked chunk (parallelize only chunks with zero file
+overlap):
 
 1. **Dispatch** an implementer via the Agent tool on the chosen implementer model.
    The prompt must be self-contained: goal one-liner, the chunk, exact file paths,
