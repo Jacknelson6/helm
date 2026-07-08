@@ -93,6 +93,37 @@ You can also name models inline; helm treats that as Custom with your choices pr
 
 To evaluate a new SOTA model as the orchestrator, start your session on that model (in Claude Code: `/model`), keep the implementation tier fixed, and compare the `## Log` sections of the state files across runs.
 
+### Recommended stack (July 2026)
+
+Our current picks if your harness can mix providers; revisit as models ship:
+
+| Tier | Recommendation |
+|---|---|
+| Orchestrator / advisor | Claude Fable 5 |
+| Builder (mid) | GPT 5.6 Terra |
+| Escalation (strong) | GPT 5.6 Sol or Claude Opus 4.8 |
+| Mechanical (small) | Claude Haiku or GPT 5.6 Luna |
+
+Single-provider? Use your provider's column from the tier table above.
+
+## Auto-update
+
+If you installed by `git clone` (the global install above), helm keeps itself current: on every invocation it quietly runs `git pull --ff-only` on its own folder before starting, and re-reads itself if anything changed. Offline or diverged clones just run the version they have; it never blocks or prompts.
+
+Prefer updating at session start instead of invocation time? Claude Code users can add a SessionStart hook to `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": "git -C ~/.claude/skills/helm pull --ff-only --quiet 2>/dev/null || true" } ] }
+    ]
+  }
+}
+```
+
+To pin a version instead, remove the `.git` folder (the per-project install above does this already) or check out a tag; helm skips self-update when it isn't a git clone.
+
 ## The state file
 
 Each run writes `.helm/<slug>.md`:

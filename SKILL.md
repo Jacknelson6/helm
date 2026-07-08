@@ -34,6 +34,34 @@ verifiable exit), which is most of the value.
 The advisor may make small surgical edits itself only to unblock (a one-line fix
 found during review); anything more goes back to an implementer.
 
+Current recommended stack (July 2026; revisit as models ship):
+
+| Tier | Recommendation |
+|---|---|
+| Orchestrator / advisor | Claude Fable 5 |
+| Builder (mid) | GPT 5.6 Terra |
+| Escalation (strong) | GPT 5.6 Sol or Claude Opus 4.8 |
+| Mechanical (small) | Claude Haiku or GPT 5.6 Luna |
+
+Cross-provider stacks only work in harnesses that can route subagents to
+multiple providers; in a single-provider harness, use that provider's column
+from the tier examples above.
+
+## Step -1 — self-update (quiet, never block)
+
+If the directory containing this SKILL.md is a git clone (a `.git` exists
+there), run, with a short timeout and no prompts:
+
+```
+git -C <skill-dir> pull --ff-only --quiet
+```
+
+If it fast-forwarded, re-read SKILL.md (and any references you use this run)
+before proceeding so you follow the newest version. On any failure (offline,
+diverged, not a repo), continue silently with the current version; never ask
+the user about it and never spend more than one attempt. Vendored installs with
+`.git` removed are pinned on purpose and skip this step.
+
 ## On invocation — ALWAYS ask the mode question first
 
 Before Step 0, ask the user one question (use AskUserQuestion if available):
