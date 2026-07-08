@@ -17,7 +17,7 @@ Two reasons to run this way:
 
 ### The data
 
-Anthropic's [@ClaudeDevs](https://x.com/ClaudeDevs) published SWE-bench Pro results (curated subset, 482 problems, July 2026) for exactly this pattern, Sonnet 5 executors steered by a Fable 5 advisor called about once per task:
+Anthropic's [@ClaudeDevs](https://x.com/ClaudeDevs) published SWE-bench Pro results (curated subset, 482 problems, July 2026) for exactly this pattern via their [advisor tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool): Sonnet 5 executors steered by a Fable 5 advisor called about once per task:
 
 | Setup | Accuracy (Wilson 95% CI) | Cost per task (notional) |
 |---|---|---|
@@ -28,6 +28,21 @@ Anthropic's [@ClaudeDevs](https://x.com/ClaudeDevs) published SWE-bench Pro resu
 That's **~92% of Fable 5's score at ~63% of the price**, and roughly 9 points over Sonnet solo for about double its cost. Helm leans into the same structure and goes further on the advisor side: it doesn't just steer once per task, it reviews every chunk's diff and owns a verifiable exit condition, spending a bit more advisor time to close part of that remaining 8% gap.
 
 The loop is **goal-driven, not vibe-driven**: before any work starts, the advisor must derive a verifiable completion condition (a command that passes, an observable behavior, or an enumerable checklist). If it can't, it interviews you until one is pinned. No "looks done to me" exits.
+
+### Relation to Anthropic's advisor tool
+
+Anthropic ships this pattern natively at the API layer: the [advisor tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool) (`advisor_20260301`, beta) lets an executor model consult a stronger advisor mid-generation, server-side, inside a single request. It's the same bet as helm with the topology inverted:
+
+|  | Advisor tool (API) | Helm (session) |
+|---|---|---|
+| Who owns the task | the cheap **executor**; it decides when to ask for advice | the strong **advisor**; it decides what gets delegated |
+| Advice granularity | a plan or course-correction, ~1-3 calls per task | full plan up front, plus a diff review of every chunk |
+| Verification | none built in; executor self-assesses | verifiable completion condition + gate, owned by the advisor |
+| Where it runs | any Claude API integration (add one tool to `tools`) | any agent harness that can spawn subagents |
+
+They compose rather than compete: helm's advisor holds the goal, the chunking, and the exit condition, things a mid-generation advice call can't own, while an implementer that supports the advisor tool can get its own mid-chunk steering. If your harness passes API tools through to subagents, giving mid-tier implementers an advisor (per the compatibility table, e.g. Sonnet executor + Opus or Fable advisor) is a cheap way to cut failed attempts before helm's escalation ladder kicks in.
+
+The loop's discipline is the part the API can't give you: goal-driven exits, independent review of diffs, and the per-chunk scorecard.
 
 ## How it works
 
