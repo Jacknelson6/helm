@@ -12,14 +12,24 @@ The loop lives entirely in this session: no scheduled wakeups, no cron, no
 background daemons. It ends when the completion check passes or a real blocker
 needs the user.
 
-Division of labor:
+Division of labor. Helm is provider-agnostic: tiers are roles, and each maps to
+whatever your provider or harness offers (Anthropic, OpenAI, xAI, Zhipu/GLM,
+Google, local models, or a mix):
 
-| Role | Model | Notes |
+| Role | Tier | Notes |
 |---|---|---|
 | Advisor / orchestrator / reviewer | session model | plans, chunks, reviews diffs, resolves ambiguity, owns the completion check |
-| Implementer (default) | mid-tier (e.g. `model: "sonnet"`) | scoped build chunks with clear acceptance criteria |
-| Implementer (hard chunks) | strong tier (e.g. `model: "opus"`) | cross-cutting refactors, tricky state/async, anything the default tier failed once |
-| Bulk mechanical | small tier (e.g. `model: "haiku"`) | renames, codemods, no judgment |
+| Implementer (default) | mid tier | scoped build chunks with clear acceptance criteria |
+| Implementer (hard chunks) | strong tier | cross-cutting refactors, tricky state/async, anything the mid tier failed once |
+| Bulk mechanical | small tier | renames, codemods, no judgment |
+
+Tier examples: Anthropic haiku / sonnet / opus; OpenAI mini-or-nano / standard /
+frontier-or-reasoning; xAI Grok mini / standard / frontier; GLM air / standard /
+frontier; Google Flash-Lite / Flash / Pro. Use whatever identifiers your harness
+accepts for its subagent model parameter. If your harness cannot run subagents on
+a different model, run implementers as fresh scoped workers on the same model:
+you lose the cost split but keep the discipline (chunking, independent review,
+verifiable exit), which is most of the value.
 
 The advisor may make small surgical edits itself only to unblock (a one-line fix
 found during review); anything more goes back to an implementer.
@@ -31,9 +41,10 @@ Before Step 0, ask the user one question (use AskUserQuestion if available):
 > **How should helm pick models for this run?**
 >
 > 1. **Auto (recommended)** — the advisor picks the best model per chunk based
->    on difficulty and cost (defaults: mid-tier implement, strong-tier escalate,
->    small-tier mechanical).
-> 2. **Custom** — you pick the three tiers yourself.
+>    on difficulty and cost (defaults: mid tier implement, strong tier escalate,
+>    small tier mechanical, using your provider's models).
+> 2. **Custom** — you pick the three tiers yourself (any models your harness
+>    can run, including mixing providers).
 
 If the user picks **Custom**, follow up asking for the three tiers (top /
 escalation, mid / default implementer, low / mechanical), offering the models
@@ -71,7 +82,8 @@ skimmable: short options with your recommended default first. Typical probes:
 - "Is done = merged, or done = working on this branch?"
 - "What's explicitly out of scope?"
 
-Then write the state file `.claude/helm/<slug>.md` (slug = short kebab task name):
+Then write the state file `.helm/<slug>.md` at the repo root (slug = short kebab
+task name):
 
 ```markdown
 # Helm: <task>
@@ -109,7 +121,9 @@ dispatch prompt template, the per-chunk review checklist, and the log-line
 format. For each unchecked chunk (parallelize only chunks with zero file
 overlap):
 
-1. **Dispatch** an implementer via the Agent tool on the chosen implementer model.
+1. **Dispatch** an implementer on the chosen implementer model via your
+   harness's subagent mechanism (Claude Code: the Agent tool; elsewhere:
+   whatever spawns a scoped worker with a selectable model).
    The prompt must be self-contained: goal one-liner, the chunk, exact file paths,
    relevant conventions (quoted inline, not "see CLAUDE.md"), the acceptance
    check, and "run the project's verify gate before returning; return a summary
