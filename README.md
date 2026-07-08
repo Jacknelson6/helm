@@ -1,4 +1,10 @@
-# helm
+```
+ _          _
+| |__   ___| |_ __ ___
+| '_ \ / _ \ | '_ ` _ \
+| | | |  __/ | | | | | |
+|_| |_|\___|_|_| |_| |_|
+```
 
 An [Agent Skill](https://docs.claude.com/en/docs/claude-code/skills) for Claude Code that turns your session into an **advisor-orchestrated build loop**: the strongest model you have plans, reviews, and decides when the work is done, while cheaper models do the actual implementation.
 
@@ -17,6 +23,7 @@ The loop is **goal-driven, not vibe-driven**: before any work starts, the adviso
 you: /helm add rate limiting to all public API routes
 
 advisor (session model):
+  ?. ask: auto or custom models?        auto = advisor picks tiers; custom = you pick top/mid/low
   0. derive completion condition        e.g. "all 12 routes in app/api/public/*
      (interview you if it can't)         return 429 after N req/min; verify gate green"
   1. plan + split into delegable chunks, write state file
@@ -56,7 +63,13 @@ or just describe it: "run the advisor loop on X", "you plan, delegate the build"
 
 ## Choosing models
 
-By default the advisor is whatever model your session runs on, and implementers are:
+Every run starts with one question:
+
+> **How should helm pick models for this run?**
+> 1. **Auto (recommended)** — the advisor picks the best model per chunk based on difficulty and cost
+> 2. **Custom** — you pick the top (escalation), mid (implementer), and low (mechanical) tiers yourself
+
+The advisor is always whatever model your session runs on. In Auto mode, implementers default to:
 
 | Tier | Default | Used for |
 |---|---|---|
@@ -65,10 +78,10 @@ By default the advisor is whatever model your session runs on, and implementers 
 | Escalation | `opus` | chunks the default tier failed twice |
 | Mechanical | `haiku` | renames, codemods, bulk edits |
 
-Override inline, the advisor respects it:
+You can also name models inline; helm treats that as Custom with your choices prefilled:
 
 ```
-/helm migrate the settings pages to the new form kit — implement with haiku, escalate to sonnet
+/helm migrate the settings pages to the new form kit, implement with haiku, escalate to sonnet
 ```
 
 To evaluate a new SOTA model as the orchestrator, start your session on that model (`/model`), keep the implementation tier fixed, and compare the `## Log` sections of the state files across runs.

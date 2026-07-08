@@ -21,11 +21,30 @@ Division of labor:
 | Implementer (hard chunks) | strong tier (e.g. `model: "opus"`) | cross-cutting refactors, tricky state/async, anything the default tier failed once |
 | Bulk mechanical | small tier (e.g. `model: "haiku"`) | renames, codemods, no judgment |
 
-If the user names specific implementer models in the invocation (e.g.
-"/helm ... implement with haiku"), use those instead of the defaults.
-
 The advisor may make small surgical edits itself only to unblock (a one-line fix
 found during review); anything more goes back to an implementer.
+
+## On invocation — ALWAYS ask the mode question first
+
+Before Step 0, ask the user one question (use AskUserQuestion if available):
+
+> **How should helm pick models for this run?**
+>
+> 1. **Auto (recommended)** — the advisor picks the best model per chunk based
+>    on difficulty and cost (defaults: mid-tier implement, strong-tier escalate,
+>    small-tier mechanical).
+> 2. **Custom** — you pick the three tiers yourself.
+
+If the user picks **Custom**, follow up asking for the three tiers (top /
+escalation, mid / default implementer, low / mechanical), offering the models
+available in this harness as options plus free-text for anything else. If the
+invocation already named models inline (e.g. "/helm ... implement with haiku"),
+treat that as Custom with those choices prefilled and confirm in the same
+question rather than re-asking from scratch.
+
+Record the outcome on the `Models:` line of the state file and honor it for the
+whole run; in Auto mode the advisor may still move a specific chunk up or down
+a tier and must note why in the log.
 
 ## Step 0 — completion condition (never skip)
 
