@@ -15,6 +15,18 @@ Two reasons to run this way:
 1. **Cost-shaped quality.** Frontier models are at their best planning, decomposing, and reviewing. Most implementation chunks don't need that horsepower. Helm keeps the expensive tokens on judgment and spends cheap tokens on typing.
 2. **Testing new SOTA models as orchestrators.** When a new top model ships (a new GPT, Grok, GLM, Gemini, or Claude), the interesting question is rarely "can it write a React component" but "can it run a team." Put the new model at the helm, hold the implementation tier constant, and the loop's state file gives you a per-chunk scorecard: how many attempts each chunk took, how often it had to escalate, whether its completion condition held up. Swap the advisor, re-run, compare.
 
+### The data
+
+Anthropic's [@ClaudeDevs](https://x.com/ClaudeDevs) published SWE-bench Pro results (curated subset, 482 problems, July 2026) for exactly this pattern, Sonnet 5 executors steered by a Fable 5 advisor called about once per task:
+
+| Setup | Accuracy (Wilson 95% CI) | Cost per task (notional) |
+|---|---|---|
+| Sonnet 5 solo | ~0.75 | ~$0.75 |
+| **Sonnet 5 + Fable 5 advisor** | **~0.84** | **~$1.45** |
+| Fable 5 solo | ~0.91 | ~$2.25 |
+
+That's **~92% of Fable 5's score at ~63% of the price**, and roughly 9 points over Sonnet solo for about double its cost. Helm leans into the same structure and goes further on the advisor side: it doesn't just steer once per task, it reviews every chunk's diff and owns a verifiable exit condition, spending a bit more advisor time to close part of that remaining 8% gap.
+
 The loop is **goal-driven, not vibe-driven**: before any work starts, the advisor must derive a verifiable completion condition (a command that passes, an observable behavior, or an enumerable checklist). If it can't, it interviews you until one is pinned. No "looks done to me" exits.
 
 ## How it works
