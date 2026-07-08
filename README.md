@@ -46,6 +46,8 @@ The loop's discipline is the part the API can't give you: goal-driven exits, ind
 
 ## How it works
 
+![The helm loop: the advisor plans and dispatches chunks to implementer workers, reviews each diff, gates on verify, retries or escalates on failure, logs every attempt to the state file, and exits only when all chunks are complete and the completion condition is verified](assets/helm-loop.png)
+
 ```
 you: /helm add rate limiting to all public API routes
 
