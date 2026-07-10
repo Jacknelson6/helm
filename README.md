@@ -97,13 +97,22 @@ or just describe it: "run the advisor loop on X", "you plan, delegate the build"
 
 The only hard requirement is a harness that can spawn scoped subagents, ideally with a selectable model per subagent. If model selection isn't available, helm still runs: implementers become fresh same-model workers and you keep the chunking, independent review, and verifiable exit.
 
-## Choosing models
+## Routing and choosing models
 
-Every run starts with one question:
+Every run starts by ROUTING: the session model picks the cheapest loop shape
+that holds quality (solo / dispatch / helm-lite / helm, see
+`references/routing.md`). On the helm-lite route a strong-tier subagent runs
+the whole advisor loop and the session model only sets the completion
+condition and verifies the exit, so the priciest model in the loop is spent
+only where frontier judgment is needed.
 
-> **How should helm pick models for this run?**
-> 1. **Auto (recommended)** — the advisor picks the best model per chunk based on difficulty and cost
-> 2. **Custom** — you pick the top (escalation), mid (implementer), and low (mechanical) tiers yourself
+For anything beyond a trivial solo edit, the run then confirms the plan in
+one question:
+
+> **Helm plan: <route>. <advisor> advising, <implementer> building,
+> <escalation> on escalation, <mechanical> for mechanical work. OK?**
+> 1. **Auto (recommended)**: run as proposed
+> 2. **Custom**: you pick the route and/or the tiers yourself
 
 The advisor is always whatever model your session runs on. Tiers are roles, not model names; map them to whatever your provider offers (mixing providers is fine if your harness supports it):
 

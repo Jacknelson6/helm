@@ -103,6 +103,7 @@ Completion check: `npm test rate-limit` green AND grep shows all 12 routes
   wrapped AND manual 61-request probe returns 429
 Out of scope: admin routes, auth endpoints, per-user limits
 Models: advisor=opus-4-8 implementer=sonnet escalation=opus  (mode: auto)
+Route: 3 helm: cross-cutting change to shared auth-adjacent middleware
 Status: complete
 ## Chunks
 - [x] 1. middleware + config — acceptance: unit tests pass

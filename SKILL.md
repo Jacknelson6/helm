@@ -18,7 +18,7 @@ Google, local models, or a mix):
 
 | Role | Tier | Notes |
 |---|---|---|
-| Advisor / orchestrator / reviewer | session model | plans, chunks, reviews diffs, resolves ambiguity, owns the completion check |
+| Advisor / orchestrator / reviewer | session model, or a strong-tier subagent on routine runs (see references/routing.md) | plans, chunks, reviews diffs, resolves ambiguity; the session model always owns the completion condition and the exit check |
 | Implementer (default) | mid tier | scoped build chunks with clear acceptance criteria |
 | Implementer (hard chunks) | strong tier | cross-cutting refactors, tricky state/async, anything the mid tier failed once |
 | Bulk mechanical | small tier | renames, codemods, no judgment |
@@ -56,6 +56,16 @@ so protect it:
   and review overhead dominates and a solo session is cheaper. Rule of thumb:
   helm pays when the implementer tier is at least 2x cheaper per token than
   the session model AND the task splits into 2+ delegable chunks.
+- **Route the advisor seat itself.** The session model is the priciest token
+  in the loop; on routine pattern-following runs a strong-tier subagent runs
+  the whole advisor loop and the session model only sets the completion
+  condition and verifies the exit. The four routes, the triage rubric, and
+  the break-even math all live in references/routing.md (the single source
+  for those numbers; do not restate them here).
+- **Stay on plan-billed subagents.** Every dispatch, including the delegated
+  advisor, rides the harness's built-in subagent mechanism (Claude Code: the
+  Agent tool), so it bills inside the existing subscription; helm never
+  needs out-of-band API calls.
 - **Record tokens so the claim is auditable.** Each log line carries the
   harness-reported subagent token count, one line per agent, updated in
   place on follow-ups (never a second "cumulative" line, which double-counts
@@ -99,28 +109,39 @@ diverged, not a repo), continue silently with the current version; never ask
 the user about it and never spend more than one attempt. Vendored installs with
 `.git` removed are pinned on purpose and skip this step.
 
-## On invocation — ALWAYS ask the mode question first
+## On invocation: route first, then confirm
 
-Before Step 0, ask the user one question (use AskUserQuestion if available):
+Before anything else, ROUTE the run: read
+[references/routing.md](references/routing.md) and pick the cheapest of its
+four loop shapes (solo / dispatch / helm-lite / helm) that holds quality for
+this task, following its triage discipline (route from the request text
+alone). The session model is the most expensive thing in the loop, so the
+first decision is how much of it this task actually needs. Route 0 (solo)
+skips the loop machinery, but never silently: tell the user in one line that
+you are handling it solo and why, then do the work; if it grows past a
+single bounded edit, stop and re-enter routing with what you learned.
 
-> **How should helm pick models for this run?**
+For routes 1-3, ask the user ONE question (use AskUserQuestion if
+available), folding the route and all model tiers into a single
+confirmation:
+
+> **Helm plan: <route name>. <advisor> advising, <implementer> building,
+> <escalation> on escalation, <mechanical> for mechanical work. OK?**
 >
-> 1. **Auto (recommended)** — the advisor picks the best model per chunk based
->    on difficulty and cost (defaults: mid tier implement, strong tier escalate,
->    small tier mechanical, using your provider's models).
-> 2. **Custom** — you pick the three tiers yourself (any models your harness
->    can run, including mixing providers).
+> 1. **Auto (recommended)**: run as proposed; the advisor may still move a
+>    specific chunk up or down a tier, noting why in the log.
+> 2. **Custom**: you pick the route and/or the three tiers yourself (any
+>    models your harness can run, including mixing providers).
 
-If the user picks **Custom**, follow up asking for the three tiers (top /
-escalation, mid / default implementer, low / mechanical), offering the models
-available in this harness as options plus free-text for anything else. If the
-invocation already named models inline (e.g. "/helm ... implement with haiku"),
-treat that as Custom with those choices prefilled and confirm in the same
-question rather than re-asking from scratch.
+If the user picks **Custom**, follow up asking for the route and three tiers
+(top / escalation, mid / default implementer, low / mechanical), offering the
+models available in this harness as options plus free-text for anything else.
+If the invocation already named models inline (e.g. "/helm ... implement with
+haiku"), treat that as Custom with those choices prefilled and confirm in the
+same question rather than re-asking from scratch.
 
-Record the outcome on the `Models:` line of the state file and honor it for the
-whole run; in Auto mode the advisor may still move a specific chunk up or down
-a tier and must note why in the log.
+Record the outcome on the `Models:` and `Route:` lines of the state file and
+honor it for the whole run.
 
 ## Step 0 — completion condition (never skip)
 
@@ -156,7 +177,8 @@ Status: in progress
 Goal: <one sentence>
 Completion check: <exact command(s) or observable + how to observe it>
 Out of scope: <list>
-Models: advisor=<session model> implementer=<model> escalation=<model>
+Models: advisor=<session model or delegated strong tier> implementer=<model> escalation=<model>
+Route: <1|2|3> <dispatch|helm-lite|helm>: <one-clause why>
 ## Chunks
 - [ ] 1. <chunk> — acceptance: <check>
 - [ ] 2. ...
@@ -173,6 +195,12 @@ The state file is the loop's memory; it must survive context compaction. Re-read
 at the top of every iteration instead of trusting conversation history.
 
 ## Step 1 — plan (advisor, full effort)
+
+Steps 1 and 2 are the advisor's job wherever the advisor lives: on the
+helm-lite route they run inside the delegated advisor agent (dispatched with
+the template in references/routing.md) and the session model rejoins at
+Step 3 to verify the exit. On the full helm route, you are the advisor;
+proceed.
 
 Plan at the level you'd want from a staff engineer: read the relevant code yourself
 (targeted reads only) or via a read-only explore agent dispatched WITH an
@@ -240,6 +268,9 @@ completion without a blocker is not an exit state; keep dispatching.
 
 - Advisor writing the feature itself "because it's faster" (defeats the point;
   small unblock edits only).
+- Defaulting every run to the session-advised route out of habit, or reading
+  files "to decide the route" (route from the request; a wrong route
+  self-corrects, a session-advised routine run never gets cheaper).
 - Dispatching without a per-chunk acceptance check (unreviewable results).
 - Trusting the implementer's self-report instead of reading the diff.
 - Vague completion condition accepted to avoid interviewing the user.

@@ -103,7 +103,7 @@ ranges, no commas, no tildes. Prose commentary goes on the lines after it,
 never inside it.
 
 ```
-Totals: impl-tokens=<n> dispatches=<n> scout-tokens=<n> mech-tokens=<n> advisor-est=<n> leaked-scouts=<n> economics=<savings|quality>
+Totals: impl-tokens=<n> dispatches=<n> scout-tokens=<n> mech-tokens=<n> advisor-est=<n> leaked-scouts=<n> economics=<savings|quality> route=<dispatch|helm-lite|helm>
 ```
 
 - `impl-tokens`: sum of mid and strong tier build dispatches; `dispatches`
@@ -119,6 +119,11 @@ Totals: impl-tokens=<n> dispatches=<n> scout-tokens=<n> mech-tokens=<n> advisor-
   implementer. Declaring it lets the audit judge each run against its own
   purpose: savings runs on the split, quality runs on review yield (rejects
   caught, escalations avoided).
+- `route`: the loop shape the run used (references/routing.md). On a
+  helm-lite run, `advisor-est` is the DELEGATED advisor agent's reported
+  token count (a real number, billed at strong-tier rates) plus the session
+  model's small triage-and-exit overhead; note the split in prose when they
+  differ materially.
 
 This is what makes the cost claim auditable run over run: a run that cannot
 show its split cannot prove helm saved anything. Healthy split for a savings
