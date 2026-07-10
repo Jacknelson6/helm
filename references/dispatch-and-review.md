@@ -65,30 +65,62 @@ across attempts burns the escalation ladder on your own review latency.
 
 ## Log lines (the scorecard)
 
-One line per chunk, appended to the state file at accept/escalate time:
+One line per DISPATCHED AGENT, appended to the state file. Chunks:
 
 ```
 - chunk <n>: <model>, <k> attempt(s)[ (escalated to <model>: <one-clause why>)], <accepted|blocked>, tokens=<n>
 ```
 
-`tokens=` is the harness-reported subagent token count (Claude Code surfaces
-it in the task-completion notification; other harnesses may expose it in the
-subagent result). Record scout/explore dispatches the same way. If the
-harness reports nothing, write `tokens=unreported` rather than omitting the
-field, so gaps are visible instead of silent.
+Scouts (exploration, planning research) get their own line, same shape:
+
+```
+- scout: <purpose>, <model>, tokens=<n>
+```
+
+Rules that keep the ledger machine-auditable (a script parses these lines;
+free-form prose here breaks the weekly audit):
+
+- `tokens=` is the harness-reported total for that agent's whole
+  conversation (Claude Code surfaces it in the task-completion
+  notification). **One agent = one line.** If you iterate with the same
+  agent or send it follow-up fixes, UPDATE that agent's existing line to the
+  new total; never append a second line with a running "cumulative" count.
+  Duplicate lines per agent double-count the run.
+- If the harness reports nothing, write `tokens=unreported` rather than
+  omitting the field, so gaps are visible instead of silent.
+- A scout line whose model is the session model is a leak: append `LEAKED`
+  to that line and count it in `leaked-scouts` at exit.
+- Follow-up defects found at the gate or in e2e route back to the agent that
+  owns that surface (SendMessage keeps its context) rather than a fresh
+  dispatch; its line's token count absorbs the fix.
 
 The "why" clause matters: when the run doubles as a model evaluation, the
 escalation reasons are the finding. "Kept missing the streaming routes" tells
 you something about a model; "3 attempts" alone doesn't.
 
-At exit, total the ledger in the state file and the recap:
+At exit, append ONE machine-parseable totals line: single numbers only, no
+ranges, no commas, no tildes. Prose commentary goes on the lines after it,
+never inside it.
 
 ```
-Tokens: implementer-tier <sum> across <n> dispatches; advisor-tier <estimate>
-(scouts leaked to advisor tier: <n or none>)
+Totals: impl-tokens=<n> dispatches=<n> scout-tokens=<n> mech-tokens=<n> advisor-est=<n> leaked-scouts=<n> economics=<savings|quality>
 ```
+
+- `impl-tokens`: sum of mid and strong tier build dispatches; `dispatches`
+  counts them.
+- `scout-tokens`: sum of scout dispatches. `mech-tokens`: sum of small-tier
+  mechanical dispatches. Zero when none.
+- `advisor-est`: single-number estimate of the session model's own tokens
+  (harnesses rarely report the main loop; pick the midpoint of your honest
+  range). Rough guide: 30-60k for planning plus 15-40k per chunk reviewed,
+  more if the advisor ran e2e itself.
+- `economics`: `savings` when the implementer tier is materially cheaper
+  than the advisor; `quality` when the user deliberately chose a strong-tier
+  implementer. Declaring it lets the audit judge each run against its own
+  purpose: savings runs on the split, quality runs on review yield (rejects
+  caught, escalations avoided).
 
 This is what makes the cost claim auditable run over run: a run that cannot
-show its split cannot prove helm saved anything. Advisor-tier usage is
-usually an estimate (harnesses rarely report the main loop's own tokens);
-say so rather than presenting it as measured.
+show its split cannot prove helm saved anything. Healthy split for a savings
+run: `advisor-est` at or below roughly 30% of the run's total tokens, and
+falling as runs get bigger.

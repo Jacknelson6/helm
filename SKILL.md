@@ -57,10 +57,19 @@ so protect it:
   helm pays when the implementer tier is at least 2x cheaper per token than
   the session model AND the task splits into 2+ delegable chunks.
 - **Record tokens so the claim is auditable.** Each log line carries the
-  harness-reported subagent token count (see the log-line format in
-  references/dispatch-and-review.md), and the exit recap totals advisor-tier
-  vs implementer-tier tokens. A run that can't show its split can't prove it
-  saved anything.
+  harness-reported subagent token count, one line per agent, updated in
+  place on follow-ups (never a second "cumulative" line, which double-counts
+  the run). At exit, write the single machine-parseable `Totals:` line (see
+  references/dispatch-and-review.md for both formats). A run that can't show
+  its split can't prove it saved anything.
+- **Declare the run's economics.** A run with a cheap implementer tier is a
+  `savings` run: the split is the point, and advisor share should stay at or
+  below roughly 30% of total tokens. A run where the user picks a strong-tier
+  implementer (e.g. the escalation model builds everything) is a `quality`
+  run: it costs MORE than solo and buys independent review, chunk discipline,
+  and a verifiable exit instead. Both are legitimate; record which one this
+  is (`economics=` in the Totals line) so the run is judged against its own
+  purpose, and never present a quality run as having saved tokens.
 
 Current recommended stack (July 2026; revisit as models ship):
 
@@ -143,6 +152,7 @@ task name):
 
 ```markdown
 # Helm: <task>
+Status: in progress
 Goal: <one sentence>
 Completion check: <exact command(s) or observable + how to observe it>
 Out of scope: <list>
@@ -153,6 +163,11 @@ Models: advisor=<session model> implementer=<model> escalation=<model>
 ## Log
 - <iteration entries appended here>
 ```
+
+`Status:` is machine-read; keep it to exactly one of `in progress`,
+`complete`, `blocked`. Anything you'd like to say about the status (what's
+pending, what shipped, what the user owes the run) goes on a separate
+`Status-note:` line, never inside `Status:` itself.
 
 The state file is the loop's memory; it must survive context compaction. Re-read it
 at the top of every iteration instead of trusting conversation history.
@@ -206,13 +221,17 @@ overlap):
 
 Run the completion check from the state file, literally and fully. Only two exits:
 
-- **Pass** → mark the state file `Status: complete`, commit if the user has
-  authorized commits (stage only this task's files), and give a short recap:
-  what was built, where it landed, per-model attempt stats from the log, and
-  sensible next steps.
+- **Pass** → mark the state file `Status: complete`, write the `Totals:`
+  ledger line, commit if the user has authorized commits (stage only this
+  task's files), and give a short recap: what was built, where it landed,
+  per-model attempt stats from the log, and sensible next steps.
 - **Blocked** → 3 strikes on one root cause, missing credentials, a destructive
   decision, or genuinely ambiguous scope discovered mid-loop. Write the blocker
-  to the state file and ask the user the narrowest possible question.
+  to the state file and ask the user the narrowest possible question. The
+  3-strikes rule applies at the completion-check level too: if 3 distinct
+  strategies fail the SAME check leg (not the same chunk), that leg is the
+  blocker; bring the user the evidence from all 3 rounds rather than
+  dispatching a 4th variation.
 
 Never exit because the loop "has done a lot" or the session is long. Partial
 completion without a blocker is not an exit state; keep dispatching.
