@@ -210,6 +210,27 @@ approach, then split into
 **delegable chunks**. A good chunk: one implementer can finish it without
 cross-chunk context, touches a bounded file set, and has its own acceptance check.
 2-6 chunks is typical; if it's one chunk, helm is overkill, just delegate once.
+Size ceiling: if a chunk's expected diff spans more than ~3 files or mixes
+concerns (lib + cron + UI in one chunk), split it before dispatching. Measured
+across the Jul 2026 ledgers: the median accepted chunk lands near 150k subagent
+tokens, and the two ~410k outliers ran 2.5-3x that, one of them carrying its
+run's only rejection.
+
+Scout discipline (in the measured ledgers, scouts are the biggest spend after
+implementation):
+
+- **Audit/hardening sweeps:** don't fan out 3-4 parallel full-sweep dimension
+  scouts (correctness, perf, convention, security) over the same surface. Run
+  one small-tier pre-pass to shortlist files, then ONE mid-tier deep audit
+  over the shortlist. Measured: parallel dimension scouts hit 44% of one run
+  (605k) and a sibling sweep spent another 577k, including one dimension that
+  returned zero findings for 141k.
+- **Regression diagnosis:** one small scout confirms WHICH surface regressed
+  before any archaeology scouts (git history, DB comparisons) go out. A
+  measured run spent a full scout sweeping the wrong surface.
+- **Retire zero-yield dimensions:** an audit dimension that has returned zero
+  accepted findings across runs gets folded into another scout's checklist or
+  dropped.
 
 The project's own rules bind every chunk: CLAUDE.md / AGENTS.md conventions,
 the design system, lint and test gates. Quote the relevant rules into each

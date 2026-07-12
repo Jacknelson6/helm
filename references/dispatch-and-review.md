@@ -63,6 +63,12 @@ When rejecting, send the implementer specifics, not sentiment:
 One rejection message per attempt; bundle every finding. Drip-feeding findings
 across attempts burns the escalation ladder on your own review latency.
 
+Slow is not failed. Before dispatching a presumed-retry for an agent that
+hasn't returned, check its task status/output, or SendMessage the running
+agent; never double-dispatch on latency alone. Measured: one redundant
+verify dispatch spent 128k confirming a diff the original agent had already
+finished.
+
 ## Log lines (the scorecard)
 
 One line per DISPATCHED AGENT, appended to the state file. Chunks:
@@ -86,8 +92,16 @@ free-form prose here breaks the weekly audit):
   agent or send it follow-up fixes, UPDATE that agent's existing line to the
   new total; never append a second line with a running "cumulative" count.
   Duplicate lines per agent double-count the run.
+- The same update-in-place rule holds at run level: a REOPENED run updates
+  the original `Totals:` line to the new totals (audit parsers read only the
+  first `Totals:` line); never append a second "Totals (reopened leg):" line.
 - If the harness reports nothing, write `tokens=unreported` rather than
-  omitting the field, so gaps are visible instead of silent.
+  omitting the field, so gaps are visible instead of silent. That is a
+  per-line state only: the exit `Totals:` line stays numeric, so a
+  non-reporting worker tier (e.g. a codex harness) gets an explicit estimate
+  with its basis stated on the line below (the ledger's cross-run median per
+  dispatched agent works), never impl-tokens=0; audits read zero as a free
+  run.
 - A scout line whose model is the session model is a leak: append `LEAKED`
   to that line and count it in `leaked-scouts` at exit.
 - Follow-up defects found at the gate or in e2e route back to the agent that
