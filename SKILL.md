@@ -108,7 +108,11 @@ Either way, recommend only models the current harness can actually dispatch:
 when in doubt, run the harness inventory in references/model-intel.md before
 proposing tiers.
 
-## Step -1 — self-update (quiet, never block)
+## Step -1 — self-update (quiet, never block, once per session)
+
+Run this at most ONCE per session: on the first helm invocation of the
+conversation only. If any earlier turn of this session already ran the
+self-update pull (any mode or subcommand counts), skip this step entirely.
 
 If the directory containing this SKILL.md is a git clone (a `.git` exists
 there), run, with a short timeout and no prompts:

@@ -190,7 +190,7 @@ question entirely and runs helm's own derived plan. Details:
 
 ## Auto-update
 
-If you installed by `git clone` (the global install above), helm keeps itself current: on every invocation it quietly runs `git pull --ff-only` on its own folder before starting, and re-reads itself if anything changed. Offline or diverged clones just run the version they have; it never blocks or prompts.
+If you installed by `git clone` (the global install above), helm keeps itself current: on the first invocation of a session it quietly runs `git pull --ff-only` on its own folder before starting, and re-reads itself if anything changed (later invocations in the same session skip the check). Offline or diverged clones just run the version they have; it never blocks or prompts.
 
 Prefer updating at session start instead of invocation time? Claude Code users can add a SessionStart hook to `~/.claude/settings.json`:
 
