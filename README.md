@@ -1,5 +1,3 @@
-<div align="center">
-
 ```
  _          _
 | |__   ___| |_ __ ___
@@ -7,6 +5,8 @@
 | | | |  __/ | | | | | |
 |_| |_|\___|_|_| |_| |_|
 ```
+
+<div align="center">
 
 **The strongest model you have plans, reviews, and decides when it's done.
 Cheaper models do the typing.**
