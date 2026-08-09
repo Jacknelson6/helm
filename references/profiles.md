@@ -23,8 +23,9 @@ notes: <optional free text>
 ```
 
 - `name`: lowercase, hyphens allowed, must not be a reserved word (`auto`,
-  `custom`, `profile`, `refresh`) and must not collide with an existing
-  profile (saving over an existing name asks first, then overwrites).
+  `custom`, `profile`, `refresh`, `evaluate`) and must not collide with an
+  existing profile (saving over an existing name asks first, then
+  overwrites).
 - `advisor`: the seat the session model normally fills. If a profile names
   an advisor that differs from the current session model, say so at run
   start and follow SKILL.md routing anyway (the session seat is set by the

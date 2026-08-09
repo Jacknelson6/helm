@@ -150,6 +150,27 @@ recomputes the cost-vs-intelligence Pareto frontier, and flags any saved
 profile whose models a newer frontier point now dominates. Runs read the
 cached snapshot only, so nothing is fetched at build time.
 
+### Setup: Artificial Analysis API key (optional, per user)
+
+Refresh works without any setup by reading the public leaderboard pages.
+For structured data (full model list with evaluations, pricing, and speed),
+give it your own free [Artificial Analysis](https://artificialanalysis.ai)
+API key:
+
+1. Create an account at [artificialanalysis.ai](https://artificialanalysis.ai)
+   and generate a key in your API settings
+   ([data API docs](https://artificialanalysis.ai/data-api/docs)).
+2. In the skill directory: `cp .env.local.example .env.local`, then paste
+   your key into `.env.local`. Alternatively, export `AA_API_KEY` in your
+   shell profile.
+3. Done; the next `/helm refresh` picks it up automatically.
+
+`.env.local` is gitignored, and so are your saved profiles
+(`profiles.local.md`): both are per-machine files that must never be
+committed. Only the `.env.local.example` template ships with the repo. If a
+key does leak into a commit, rotate it at Artificial Analysis first, then
+scrub the history.
+
 ### Profiles
 
 Save a named routing preset once, reuse it forever:
@@ -206,6 +227,13 @@ Models: advisor=opus-4-8 implementer=sonnet escalation=opus
 
 Gitignore `.helm/` if you don't want run logs in your repo; keep them if you're benchmarking.
 
+`/helm evaluate` reads these ledgers back and reports what helm actually
+bought you: measured token/cost savings per run (with the assumptions named),
+advisor-share trend, a per-model scorecard (first-attempt acceptance,
+escalations and why), and suggested tier or profile changes grounded in the
+evidence. Savings runs get a dollar figure; quality runs get review yield,
+never a savings claim.
+
 ## What's in the repo
 
 - `SKILL.md`: the skill itself
@@ -214,7 +242,9 @@ Gitignore `.helm/` if you don't want run logs in your repo; keep them if you're 
 - `references/routing.md`: the four loop shapes (solo / dispatch / helm-lite / helm), the triage rubric, and the break-even math
 - `references/model-intel.md`: harness model inventory, the cached Artificial Analysis Pareto snapshot, and the `/helm refresh` procedure
 - `references/profiles.md`: saved model-routing profiles: format, commands, billing-lane rules
+- `references/evaluate.md`: the `/helm evaluate` ledger report (measured savings, per-model scorecard, suggestions)
 - `profiles.local.md`: your saved profiles (gitignored, created on first save)
+- `.env.local.example`: template for your Artificial Analysis API key (`.env.local` itself is gitignored)
 
 The references load on demand (progressive disclosure), so the skill stays cheap in context until a run actually starts.
 

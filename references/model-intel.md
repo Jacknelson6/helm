@@ -101,14 +101,24 @@ Steps, in order:
 1. **Harness inventory** (section 1): re-derive it for the current session
    and summarize it to the user: session model, dispatchable tiers, lanes.
 2. **Fetch fresh data from Artificial Analysis.**
-   - Preferred, if AA_API_KEY is set:
+   - Resolve the key: use `$AA_API_KEY` from the environment, else read it
+     from `<skill-dir>/.env.local` (setup walkthrough in README.md; template
+     in `.env.local.example`). Never echo the key back to the user, write it
+     to any tracked file, or paste it into logs or state files.
+   - Preferred, with a key:
      `curl -s https://artificialanalysis.ai/api/v2/data/llms/models -H "x-api-key: $AA_API_KEY"`
-     (free tier: median metrics and input/output prices; docs at
-     https://artificialanalysis.ai/data-api/docs). AA requires attribution:
-     link artificialanalysis.ai wherever the data is shown.
+     (verified shape: `data` is a list of models, each with `name`,
+     `model_creator`, `evaluations` (the intelligence index), `pricing`, and
+     `median_output_tokens_per_second`; free tier returns medians and
+     input/output prices; docs at https://artificialanalysis.ai/data-api/docs).
+     Save the JSON to a temp file and extract the fields; never dump the raw
+     ~595-model payload into context. AA requires attribution: link
+     artificialanalysis.ai wherever the data is shown.
    - Fallback, no key: WebFetch https://artificialanalysis.ai/models and
      /leaderboards/models and extract intelligence, blended price, speed.
-   - If both fail (offline), say so and stop; never invent numbers.
+   - If both fail (offline), say so and stop; never invent numbers. On a
+     401/403, say the key is missing/invalid or the tier doesn't cover the
+     endpoint, point at the README setup section, and fall back to WebFetch.
 3. **Rewrite section 2** with the fresh table, recompute the Pareto
    frontier, and bump the snapshot date at the top of this file.
 4. **Update the stack table in SKILL.md** (and README.md if its copy

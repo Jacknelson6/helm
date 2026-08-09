@@ -1,6 +1,6 @@
 ---
 name: helm
-description: "Advisor-orchestrated in-session build loop. The session model (the strongest model you have, or a new SOTA model you want to evaluate) acts as planner + advisor + reviewer; implementation is delegated to cheaper subagent models. Derives a verifiable completion condition up front and interviews the user if one can't be derived. Supports saved model-routing profiles (/helm <profile-name>, /helm profile save ...) and a model-intel refresh (/helm refresh) that audits locally available models against Artificial Analysis data. Use when the user says /helm, 'helm this', 'advisor loop', 'run the advisor loop', 'you plan, delegate the build', 'helm profile', 'helm refresh', or wants the top model orchestrating while lesser models implement. NOT a scheduled loop: it runs inside the current session until the goal check passes."
+description: "Advisor-orchestrated in-session build loop. The session model (the strongest model you have, or a new SOTA model you want to evaluate) acts as planner + advisor + reviewer; implementation is delegated to cheaper subagent models. Derives a verifiable completion condition up front and interviews the user if one can't be derived. Supports saved model-routing profiles (/helm <profile-name>, /helm profile save ...), a model-intel refresh (/helm refresh) that audits locally available models against Artificial Analysis data, and a ledger report (/helm evaluate) that measures cost savings and per-model performance. Use when the user says /helm, 'helm this', 'advisor loop', 'run the advisor loop', 'you plan, delegate the build', 'helm profile', 'helm refresh', 'helm evaluate', or wants the top model orchestrating while lesser models implement. NOT a scheduled loop: it runs inside the current session until the goal check passes."
 ---
 
 # Helm — advisor-orchestrated build loop
@@ -149,10 +149,15 @@ as `automatic`, `autofix`, or a task whose first word merely begins with
   refresh the Artificial Analysis snapshot, and review saved profiles and
   the loop architecture against it; follow the Refresh section of
   [references/model-intel.md](references/model-intel.md). Not a build run.
+- **`/helm evaluate`**: read this repo's `.helm/` run ledgers and report
+  measured cost savings, per-model performance, and suggested tier or
+  profile changes; follow [references/evaluate.md](references/evaluate.md).
+  Not a build run.
 - **`/helm <task>`** with no mode: use the confirmation flow below.
 
-`auto`, `custom`, `profile`, and `refresh` are reserved and can never be
-profile names. An unknown first word is not an error: treat it as task text.
+`auto`, `custom`, `profile`, `refresh`, and `evaluate` are reserved and can
+never be profile names. An unknown first word is not an error: treat it as
+task text.
 
 ## On invocation: route first, then confirm
 
