@@ -1,6 +1,6 @@
 ---
 name: helm
-description: "Advisor-orchestrated in-session build loop. The session model (the strongest model you have, or a new SOTA model you want to evaluate) acts as planner + advisor + reviewer; implementation is delegated to cheaper subagent models. Derives a verifiable completion condition up front and interviews the user if one can't be derived. Use when the user says /helm, 'helm this', 'advisor loop', 'run the advisor loop', 'you plan, delegate the build', or wants the top model orchestrating while lesser models implement. NOT a scheduled loop: it runs inside the current session until the goal check passes."
+description: "Advisor-orchestrated in-session build loop. The session model (the strongest model you have, or a new SOTA model you want to evaluate) acts as planner + advisor + reviewer; implementation is delegated to cheaper subagent models. Derives a verifiable completion condition up front and interviews the user if one can't be derived. Supports saved model-routing profiles (/helm <profile-name>, /helm profile save ...) and a model-intel refresh (/helm refresh) that audits locally available models against Artificial Analysis data. Use when the user says /helm, 'helm this', 'advisor loop', 'run the advisor loop', 'you plan, delegate the build', 'helm profile', 'helm refresh', or wants the top model orchestrating while lesser models implement. NOT a scheduled loop: it runs inside the current session until the goal check passes."
 ---
 
 # Helm — advisor-orchestrated build loop
@@ -62,10 +62,19 @@ so protect it:
   condition and verifies the exit. The four routes, the triage rubric, and
   the break-even math all live in references/routing.md (the single source
   for those numbers; do not restate them here).
-- **Stay on plan-billed subagents.** Every dispatch, including the delegated
-  advisor, rides the harness's built-in subagent mechanism (Claude Code: the
-  Agent tool), so it bills inside the existing subscription; helm never
-  needs out-of-band API calls.
+- **Stay on plan-billed subagents, and confirm before leaving the plan.**
+  Every dispatch, including the delegated advisor, defaults to the harness's
+  built-in subagent mechanism (Claude Code: the Agent tool), so it bills
+  inside the existing subscription; helm never needs out-of-band API calls.
+  The presence of an API key in the environment (OPENROUTER_API_KEY,
+  OPENAI_API_KEY, ANTHROPIC_API_KEY, ...) is availability, NOT consent: keys
+  often exist for the product under development, not for helm's own spend.
+  Route dispatches through a metered API only when the user explicitly chose
+  it, either in this run's confirmation or on a profile's `billing:` line.
+  If both a subscription lane and a usable key could serve a chosen model
+  and the user hasn't said which, ask once (one short question), then record
+  the answer in the state file and, if a profile is active, offer to save it
+  to the profile so the question never repeats.
 - **Record tokens so the claim is auditable.** Each log line carries the
   harness-reported subagent token count, one line per agent, updated in
   place on follow-ups (never a second "cumulative" line, which double-counts
@@ -81,18 +90,23 @@ so protect it:
   is (`economics=` in the Totals line) so the run is judged against its own
   purpose, and never present a quality run as having saved tokens.
 
-Current recommended stack (July 2026; revisit as models ship):
+Current recommended stack, from the cached Artificial Analysis snapshot in
+[references/model-intel.md](references/model-intel.md) (refreshed 2026-08-09;
+when the snapshot is over ~30 days old, note that in the plan confirmation
+and offer `/helm refresh`, but never block a run on it):
 
-| Tier | Recommendation |
-|---|---|
-| Orchestrator / advisor | Claude Fable 5 |
-| Builder (mid) | GPT 5.6 Terra |
-| Escalation (strong) | GPT 5.6 Sol or Claude Opus 4.8 |
-| Mechanical (small) | Claude Haiku or GPT 5.6 Luna |
+| Tier | Single-provider (e.g. Claude Code) | Cross-provider harness |
+|---|---|---|
+| Orchestrator / advisor | session model (Claude Fable 5 or Opus 5) | Claude Fable 5 or Opus 5 |
+| Builder (mid) | Claude Sonnet 5 | GPT-5.6 Terra |
+| Escalation (strong) | Claude Opus 5 | GPT-5.6 Sol or Claude Opus 5 |
+| Mechanical (small) | Claude Haiku 4.5 | GPT-5.6 Luna or DeepSeek V4 Flash |
 
 Cross-provider stacks only work in harnesses that can route subagents to
-multiple providers; in a single-provider harness, use that provider's column
-from the tier examples above.
+multiple providers; in a single-provider harness, use that provider's column.
+Either way, recommend only models the current harness can actually dispatch:
+when in doubt, run the harness inventory in references/model-intel.md before
+proposing tiers.
 
 ## Step -1 — self-update (quiet, never block)
 
@@ -109,6 +123,37 @@ diverged, not a repo), continue silently with the current version; never ask
 the user about it and never spend more than one attempt. Vendored installs with
 `.git` removed are pinned on purpose and skip this step.
 
+## Invocation modes and subcommands
+
+Treat the first word (or two) after `/helm` as an optional mode. Remove the
+mode words before interpreting the remainder as the task request. Words such
+as `automatic`, `autofix`, or a task whose first word merely begins with
+`auto` are ordinary request text, not mode aliases.
+
+- **`/helm auto <task>`** — accept the route and model tiers helm derives
+  from the request. Skip the route/model confirmation question; announce the
+  selected plan in one line and proceed immediately. This bypass applies
+  only to route/model confirmation, never to a genuinely ambiguous
+  completion condition or a later real blocker.
+- **`/helm custom <task>`** — skip the Auto-vs-Custom confirmation and ask
+  directly for only the route or tiers not already supplied inline.
+- **`/helm <profile-name> <task>`** — if the first word matches a saved
+  profile in `profiles.local.md` (see
+  [references/profiles.md](references/profiles.md)), run with that profile's
+  tiers and billing lane: announce them in one line, skip the tier
+  confirmation, and still choose the route per references/routing.md
+  (profiles pin models, never routes).
+- **`/helm profile <save|list|show|delete> ...`** — manage saved profiles;
+  follow [references/profiles.md](references/profiles.md). Not a build run.
+- **`/helm refresh`** — re-audit the models this harness can dispatch,
+  refresh the Artificial Analysis snapshot, and review saved profiles and
+  the loop architecture against it; follow the Refresh section of
+  [references/model-intel.md](references/model-intel.md). Not a build run.
+- **`/helm <task>`** with no mode — use the confirmation flow below.
+
+`auto`, `custom`, `profile`, and `refresh` are reserved and can never be
+profile names. An unknown first word is not an error: treat it as task text.
+
 ## On invocation: route first, then confirm
 
 Before anything else, ROUTE the run: read
@@ -121,9 +166,9 @@ skips the loop machinery, but never silently: tell the user in one line that
 you are handling it solo and why, then do the work; if it grows past a
 single bounded edit, stop and re-enter routing with what you learned.
 
-For routes 1-3, ask the user ONE question (use AskUserQuestion if
-available), folding the route and all model tiers into a single
-confirmation:
+For routes 1-3 without an explicit invocation mode or active profile, ask
+the user ONE question (use AskUserQuestion if available), folding the route
+and all model tiers into a single confirmation:
 
 > **Helm plan: <route name>. <advisor> advising, <implementer> building,
 > <escalation> on escalation, <mechanical> for mechanical work. OK?**
@@ -177,7 +222,7 @@ Status: in progress
 Goal: <one sentence>
 Completion check: <exact command(s) or observable + how to observe it>
 Out of scope: <list>
-Models: advisor=<session model or delegated strong tier> implementer=<model> escalation=<model>
+Models: advisor=<session model or delegated strong tier> implementer=<model> escalation=<model> [profile=<name>] [billing=<subscription|api:<provider>>]
 Route: <1|2|3> <dispatch|helm-lite|helm>: <one-clause why>
 ## Chunks
 - [ ] 1. <chunk> — acceptance: <check>

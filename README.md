@@ -131,18 +131,41 @@ You can also name models inline; helm treats that as Custom with your choices pr
 
 To evaluate a new SOTA model as the orchestrator, start your session on that model (in Claude Code: `/model`), keep the implementation tier fixed, and compare the `## Log` sections of the state files across runs.
 
-### Recommended stack (July 2026)
+### Recommended stack (August 2026)
 
-Our current picks if your harness can mix providers; revisit as models ship:
+Our current picks, from the cached [Artificial Analysis](https://artificialanalysis.ai)
+snapshot in `references/model-intel.md`:
 
-| Tier | Recommendation |
-|---|---|
-| Orchestrator / advisor | Claude Fable 5 |
-| Builder (mid) | GPT 5.6 Terra |
-| Escalation (strong) | GPT 5.6 Sol or Claude Opus 4.8 |
-| Mechanical (small) | Claude Haiku or GPT 5.6 Luna |
+| Tier | Single-provider (e.g. Claude Code) | Cross-provider harness |
+|---|---|---|
+| Orchestrator / advisor | session model (Claude Fable 5 or Opus 5) | Claude Fable 5 or Opus 5 |
+| Builder (mid) | Claude Sonnet 5 | GPT-5.6 Terra |
+| Escalation (strong) | Claude Opus 5 | GPT-5.6 Sol or Claude Opus 5 |
+| Mechanical (small) | Claude Haiku 4.5 | GPT-5.6 Luna or DeepSeek V4 Flash |
 
-Single-provider? Use your provider's column from the tier table above.
+`/helm refresh` keeps this current: it re-audits which models your harness
+can actually dispatch (and on which billing lane, subscription vs metered
+API), pulls fresh intelligence/price/speed data from Artificial Analysis,
+recomputes the cost-vs-intelligence Pareto frontier, and flags any saved
+profile whose models a newer frontier point now dominates. Runs read the
+cached snapshot only, so nothing is fetched at build time.
+
+### Profiles
+
+Save a named routing preset once, reuse it forever:
+
+```
+/helm profile save all-anthropic: fable advising, sonnet building, opus escalation, haiku mechanical, subscription
+/helm all-anthropic migrate the settings pages to the new form kit
+```
+
+Profiles live in a gitignored `profiles.local.md` and record models plus the
+billing lane (`subscription`, `api:<provider>`, or `ask`). Helm never routes
+spend through an API key just because one exists in the environment; leaving
+the subscription lane always takes an explicit choice, in the run
+confirmation or on the profile. `/helm auto <task>` skips the confirmation
+question entirely and runs helm's own derived plan. Details:
+`references/profiles.md` and `references/model-intel.md`.
 
 ## Auto-update
 
@@ -188,6 +211,10 @@ Gitignore `.helm/` if you don't want run logs in your repo; keep them if you're 
 - `SKILL.md` — the skill itself
 - `references/success-criteria.md` — what success looks like: worked completion conditions by task type (feature, bug fix, refactor, UI, performance), the invalid conditions helm must reject, and a gold-standard state file
 - `references/dispatch-and-review.md` — the dispatch prompt template, the advisor's per-chunk review checklist, and the log-line format that doubles as the model scorecard
+- `references/routing.md` — the four loop shapes (solo / dispatch / helm-lite / helm), the triage rubric, and the break-even math
+- `references/model-intel.md` — harness model inventory, the cached Artificial Analysis Pareto snapshot, and the `/helm refresh` procedure
+- `references/profiles.md` — saved model-routing profiles: format, commands, billing-lane rules
+- `profiles.local.md` — your saved profiles (gitignored, created on first save)
 
 The references load on demand (progressive disclosure), so the skill stays cheap in context until a run actually starts.
 
