@@ -38,7 +38,7 @@ notes: <optional free text>
 
 ## Commands
 
-- **`/helm profile save <name>: <spec>`** — parse models from the spec
+- **`/helm profile save <name>: <spec>`**: parse models from the spec
   (free text is fine: "fable advising, sonnet building, opus escalation,
   haiku mechanical, subscription"). Before writing: validate every model
   against the harness inventory (references/model-intel.md section 1), warn
@@ -47,10 +47,10 @@ notes: <optional free text>
   rule: if the spec names models reachable only via API, or both lanes could
   serve it and the user didn't say which, ask once and record the answer.
   Echo the saved block back.
-- **`/helm profile list`** — names + one-line summaries (models + billing).
-- **`/helm profile show <name>`** — the full block.
-- **`/helm profile delete <name>`** — confirm, then remove the block.
-- **`/helm <name> <task>`** — run with that profile (see SKILL.md
+- **`/helm profile list`**: names + one-line summaries (models + billing).
+- **`/helm profile show <name>`**: the full block.
+- **`/helm profile delete <name>`**: confirm, then remove the block.
+- **`/helm <name> <task>`**: run with that profile (see SKILL.md
   invocation modes). Announce in one line: "Profile <name>: <builder>
   building, <escalation> on escalation, <mechanical> mechanical,
   <billing> lane." Then route and run; skip the tier confirmation. Inline

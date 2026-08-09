@@ -208,13 +208,13 @@ Gitignore `.helm/` if you don't want run logs in your repo; keep them if you're 
 
 ## What's in the repo
 
-- `SKILL.md` — the skill itself
-- `references/success-criteria.md` — what success looks like: worked completion conditions by task type (feature, bug fix, refactor, UI, performance), the invalid conditions helm must reject, and a gold-standard state file
-- `references/dispatch-and-review.md` — the dispatch prompt template, the advisor's per-chunk review checklist, and the log-line format that doubles as the model scorecard
-- `references/routing.md` — the four loop shapes (solo / dispatch / helm-lite / helm), the triage rubric, and the break-even math
-- `references/model-intel.md` — harness model inventory, the cached Artificial Analysis Pareto snapshot, and the `/helm refresh` procedure
-- `references/profiles.md` — saved model-routing profiles: format, commands, billing-lane rules
-- `profiles.local.md` — your saved profiles (gitignored, created on first save)
+- `SKILL.md`: the skill itself
+- `references/success-criteria.md`: what success looks like: worked completion conditions by task type (feature, bug fix, refactor, UI, performance), the invalid conditions helm must reject, and a gold-standard state file
+- `references/dispatch-and-review.md`: the dispatch prompt template, the advisor's per-chunk review checklist, and the log-line format that doubles as the model scorecard
+- `references/routing.md`: the four loop shapes (solo / dispatch / helm-lite / helm), the triage rubric, and the break-even math
+- `references/model-intel.md`: harness model inventory, the cached Artificial Analysis Pareto snapshot, and the `/helm refresh` procedure
+- `references/profiles.md`: saved model-routing profiles: format, commands, billing-lane rules
+- `profiles.local.md`: your saved profiles (gitignored, created on first save)
 
 The references load on demand (progressive disclosure), so the skill stays cheap in context until a run actually starts.
 

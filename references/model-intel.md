@@ -14,18 +14,18 @@ Never block or delay a build run on freshness.
 A recommendation for a model the harness can't run is noise. Before proposing
 tiers to a user (and always during `/helm refresh`), establish:
 
-1. **Session model** — what is driving this conversation. It is the default
+1. **Session model**: what is driving this conversation. It is the default
    advisor seat and the price ceiling every dispatch is arbitraged against.
-2. **Dispatchable models** — what the harness's subagent mechanism accepts
+2. **Dispatchable models**: what the harness's subagent mechanism accepts
    as a model parameter. In Claude Code, read the Agent tool's `model` enum
    in its schema (plus the agent-type definitions' model frontmatter);
    elsewhere, read the harness's subagent/worker docs. Only these models can
    fill the builder / escalation / mechanical seats on the subscription lane.
-3. **Cross-provider routing** — can a dispatch reach a different provider
+3. **Cross-provider routing**: can a dispatch reach a different provider
    than the session model (via the harness natively, or via a gateway like
    OpenRouter)? If not, the cross-provider column of any recommendation is
    irrelevant here; use the single-provider column.
-4. **Latent API lanes** — environment keys that could reach more models:
+4. **Latent API lanes**: environment keys that could reach more models:
    OPENROUTER_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY /
    GEMINI_API_KEY, XAI_API_KEY, DEEPSEEK_API_KEY, AA_API_KEY. Report these
    as *available lanes only*. A key is never consent to spend on it: the
@@ -33,7 +33,7 @@ tiers to a user (and always during `/helm refresh`), establish:
    confirmation or a profile's `billing:` line) before any metered dispatch,
    and one clarifying question when both a subscription and a usable key
    could serve the same model.
-5. **Billing mode per lane** — subscription/plan-billed (harness subagents)
+5. **Billing mode per lane**: subscription/plan-billed (harness subagents)
    vs metered API (per-token spend). Label every inventoried model with its
    lane so cost talk compares like with like: a subscription dispatch has
    zero marginal dollar cost but consumes plan quota; an API dispatch has a
@@ -98,7 +98,7 @@ long autonomous ones.
 Run when the user invokes it, and suggest it when the snapshot is stale.
 Steps, in order:
 
-1. **Harness inventory** (section 1) — re-derive it for the current session
+1. **Harness inventory** (section 1): re-derive it for the current session
    and summarize it to the user: session model, dispatchable tiers, lanes.
 2. **Fetch fresh data from Artificial Analysis.**
    - Preferred, if AA_API_KEY is set:
@@ -114,19 +114,19 @@ Steps, in order:
 4. **Update the stack table in SKILL.md** (and README.md if its copy
    drifted) only when a seat's recommendation actually changes; note each
    change and the why in one line to the user.
-5. **Audit saved profiles** — for every profile in `profiles.local.md`,
+5. **Audit saved profiles**: for every profile in `profiles.local.md`,
    check each seat against the new frontier. Where a profile's model is now
    dominated (a frontier model is cheaper AND at least as capable, or the
    model was deprecated/renamed), tell the user the suggested swap and the
    evidence. Suggest only; never edit a profile without the user's yes.
-6. **Architecture pulse-check** — one short WebSearch pass on current
+6. **Architecture pulse-check**: one short WebSearch pass on current
    multi-model orchestration practice (advisor/worker loops, routing,
    verification patterns). If something material has shifted (e.g. harnesses
    now report subagent cost natively, or a better-verified loop shape is
    published), summarize it in 3 lines or less for the user and, if they
    agree it warrants it, open a follow-up task; refresh itself never
    rewrites the loop.
-7. **Commit** — if the skill directory is a git clone, commit the refreshed
+7. **Commit**: if the skill directory is a git clone, commit the refreshed
    files ("chore: model-intel refresh <date>") and push if a remote is
    configured; skip silently otherwise.
 

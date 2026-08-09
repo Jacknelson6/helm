@@ -130,26 +130,26 @@ mode words before interpreting the remainder as the task request. Words such
 as `automatic`, `autofix`, or a task whose first word merely begins with
 `auto` are ordinary request text, not mode aliases.
 
-- **`/helm auto <task>`** — accept the route and model tiers helm derives
+- **`/helm auto <task>`**: accept the route and model tiers helm derives
   from the request. Skip the route/model confirmation question; announce the
   selected plan in one line and proceed immediately. This bypass applies
   only to route/model confirmation, never to a genuinely ambiguous
   completion condition or a later real blocker.
-- **`/helm custom <task>`** — skip the Auto-vs-Custom confirmation and ask
+- **`/helm custom <task>`**: skip the Auto-vs-Custom confirmation and ask
   directly for only the route or tiers not already supplied inline.
-- **`/helm <profile-name> <task>`** — if the first word matches a saved
+- **`/helm <profile-name> <task>`**: if the first word matches a saved
   profile in `profiles.local.md` (see
   [references/profiles.md](references/profiles.md)), run with that profile's
   tiers and billing lane: announce them in one line, skip the tier
   confirmation, and still choose the route per references/routing.md
   (profiles pin models, never routes).
-- **`/helm profile <save|list|show|delete> ...`** — manage saved profiles;
+- **`/helm profile <save|list|show|delete> ...`**: manage saved profiles;
   follow [references/profiles.md](references/profiles.md). Not a build run.
-- **`/helm refresh`** — re-audit the models this harness can dispatch,
+- **`/helm refresh`**: re-audit the models this harness can dispatch,
   refresh the Artificial Analysis snapshot, and review saved profiles and
   the loop architecture against it; follow the Refresh section of
   [references/model-intel.md](references/model-intel.md). Not a build run.
-- **`/helm <task>`** with no mode — use the confirmation flow below.
+- **`/helm <task>`** with no mode: use the confirmation flow below.
 
 `auto`, `custom`, `profile`, and `refresh` are reserved and can never be
 profile names. An unknown first word is not an error: treat it as task text.
