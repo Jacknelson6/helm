@@ -157,11 +157,18 @@ as `automatic`, `autofix`, or a task whose first word merely begins with
   measured cost savings, per-model performance, and suggested tier or
   profile changes; follow [references/evaluate.md](references/evaluate.md).
   Not a build run.
+- **`/helm help`**: print a compact command reference and stop. One table
+  covering every mode and subcommand above (command + one-line what-it-does
+  + an example invocation), then the user's saved profile names from
+  `profiles.local.md` (or "no profiles saved yet" plus the save syntax),
+  then one closing line: the current model-intel snapshot date and where
+  the full docs live (README.md and references/). No network, no dispatches,
+  no state file. Not a build run.
 - **`/helm <task>`** with no mode: use the confirmation flow below.
 
-`auto`, `custom`, `profile`, `refresh`, and `evaluate` are reserved and can
-never be profile names. An unknown first word is not an error: treat it as
-task text.
+`auto`, `custom`, `profile`, `refresh`, `evaluate`, and `help` are reserved
+and can never be profile names. An unknown first word is not an error: treat
+it as task text.
 
 ## On invocation: route first, then confirm
 

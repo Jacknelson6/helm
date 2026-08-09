@@ -85,8 +85,9 @@ You can also name models inline in any of these ("... implement with haiku, esca
 |---|---|
 | `/helm refresh` | Re-audits which models your harness can dispatch, pulls fresh intelligence/price/speed data from [Artificial Analysis](https://artificialanalysis.ai), recomputes the Pareto frontier, and flags saved profiles a newer model now dominates. |
 | `/helm evaluate` | Reads the repo's `.helm/` run ledgers and reports measured savings, the per-model scorecard, and evidence-grounded tuning suggestions. |
+| `/helm help` | Prints this command reference in-session, plus your saved profile names and the model-snapshot date. |
 
-`auto`, `custom`, `profile`, `refresh`, and `evaluate` are reserved words; anything else after `/helm` is treated as your task (or a profile name if it matches one).
+`auto`, `custom`, `profile`, `refresh`, `evaluate`, and `help` are reserved words; anything else after `/helm` is treated as your task (or a profile name if it matches one).
 
 ## How it works
 
