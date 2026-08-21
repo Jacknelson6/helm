@@ -88,7 +88,11 @@ so protect it:
   run: it costs MORE than solo and buys independent review, chunk discipline,
   and a verifiable exit instead. Both are legitimate; record which one this
   is (`economics=` in the Totals line) so the run is judged against its own
-  purpose, and never present a quality run as having saved tokens.
+  purpose, and never present a quality run as having saved tokens. Tier check
+  before tagging: if the implementer's blended price is not at least ~2x
+  cheaper than the advisor's, the run cannot honestly be `savings`; tag it
+  `quality`. Measured (Aug 2026): an Opus-5-implementer run tagged savings
+  returned only a ~10% saving, half the fleet median.
 
 Current recommended stack, from the cached Artificial Analysis snapshot in
 [references/model-intel.md](references/model-intel.md) (refreshed 2026-08-09;
@@ -275,7 +279,10 @@ Size ceiling: if a chunk's expected diff spans more than ~3 files or mixes
 concerns (lib + cron + UI in one chunk), split it before dispatching. Measured
 across the Jul 2026 ledgers: the median accepted chunk lands near 150k subagent
 tokens, and the two ~410k outliers ran 2.5-3x that, one of them carrying its
-run's only rejection.
+run's only rejection. Aug 2026 update: every accepted chunk above ~250k logged
+watchdog stalls needing manual resumes (5 stalls across 3 chunks in one week);
+treat ~250k expected subagent tokens as a hard split trigger, not a soft
+ceiling.
 
 Scout discipline (in the measured ledgers, scouts are the biggest spend after
 implementation):
@@ -292,6 +299,11 @@ implementation):
 - **Retire zero-yield dimensions:** an audit dimension that has returned zero
   accepted findings across runs gets folded into another scout's checklist or
   dropped.
+- **Inventory scouts go small-tier:** file lists, call-site enumeration,
+  env-var sweeps, and other structured-inventory sweeps need format-following,
+  not judgment; dispatch them on the mechanical tier. Measured (Aug 2026): a
+  haiku inventory scout cost ~76k where sibling sonnet scouts ran 100-180k for
+  comparable coverage.
 
 The project's own rules bind every chunk: CLAUDE.md / AGENTS.md conventions,
 the design system, lint and test gates. Quote the relevant rules into each
